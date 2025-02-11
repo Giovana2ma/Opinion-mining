@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 import warnings
+from wordcloud import WordCloud
+import nltk
+from nltk.corpus import stopwords
 warnings.filterwarnings('ignore')
 
 
@@ -43,3 +46,39 @@ def filter_videos(data, terms):
                             data['Description'].str.contains(pattern, case=False, na=False)]
 
     return filtered_data  
+
+def clean_text(text):
+    """Removes stopwords, punctuation, and special characters from text."""
+
+    stop_words = set(stopwords.words('english')) | set(stopwords.words('portuguese'))
+    # Add custom stopwords
+    custom_stopwords = {"https", "follow","instagram","veja","abril","assine" \
+                        ,"bitly","bit ly","abr","2vzw8dn","confira","últimas"\
+                          ,"vejanoinsta", "br", "siga" }
+    stop_words.update(custom_stopwords)
+
+    if pd.isna(text):  # Handle NaN values
+        return ""
+    text = text.lower()  # Convert to lowercase
+    text = re.sub(r'\W+', ' ', text)  # Remove special characters and punctuation
+    words = text.split()  # Tokenize text
+    words = [word for word in words if word not in stop_words]  # Remove stopwords
+    return " ".join(words)
+
+def generate_wordcloud(data):
+    """Generates a word cloud from the 'Title' and 'Description' columns."""
+    # Merge 'Title' and 'Description' columns
+    combined_text = " ".join(data["Title"].astype(str) + " " + data["Description"].astype(str))
+
+    # Clean text
+    cleaned_text = clean_text(combined_text)
+
+    # Generate word cloud
+    wordcloud = WordCloud(width=800, height=400, background_color="black", colormap="viridis").generate(cleaned_text)
+
+    # Display word cloud
+    plt.figure(figsize=(12, 6))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")  # Hide axes
+    plt.title("Word Cloud - Title & Description", fontsize=14)
+    plt.show()
