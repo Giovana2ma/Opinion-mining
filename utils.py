@@ -6,6 +6,7 @@ import re
 import warnings
 from wordcloud import WordCloud
 import nltk
+import isodate
 from nltk.corpus import stopwords
 warnings.filterwarnings('ignore')
 
@@ -81,4 +82,47 @@ def generate_wordcloud(data):
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")  # Hide axes
     plt.title("Word Cloud - Title & Description", fontsize=14)
+    plt.show()
+
+def generate_duration_histogram(data,name):
+        data["Duration_minutes"] = data["Duration"].apply(lambda x: isodate.parse_duration(x).total_seconds()/60)
+        # sns.set_style("whitegrid")
+
+        # Create the figure
+        plt.figure(figsize=(8, 5))
+
+        # Plot histogram with KDE
+        sns.histplot(data["Duration_minutes"], bins=10, kde=True, color="#4C72B0", edgecolor="black", alpha=0.8)
+
+        # Labels and title
+        plt.xlabel("Duration (minutes)", fontsize=12)
+        plt.ylabel("Frequency", fontsize=12)
+        plt.title(f"Distribution of Video Durations on {name}", fontsize=14, fontweight="bold")
+
+        # Grid for readability
+        plt.grid(axis="y", linestyle="--", alpha=0.7)
+        plt.grid(axis="x", linestyle="--", alpha=0.0)
+
+        # Show plot
+        plt.show()
+
+def generate_years_barplot(data,name):
+    data["PublicationDate"] = pd.to_datetime(data["PublicationDate"].str.replace("Z", "", regex=False))
+    data["upload_year"] = data["PublicationDate"].dt.year
+
+    # Set Seaborn style
+    sns.set_style("whitegrid")
+
+    # Create figure
+    plt.figure(figsize=(8, 5))
+
+    # Plot bar chart
+    sns.countplot(x=data["upload_year"], palette="viridis")
+
+    # Labels and title
+    plt.xlabel("Year", fontsize=12)
+    plt.ylabel("Number of Videos", fontsize=12)
+    plt.title(f"Distribution of Videos Over the Years on {name}", fontsize=14, fontweight="bold")
+
+    # Show plot
     plt.show()
